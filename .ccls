@@ -1,0 +1,7 @@
+clang
+-Iincludes
+%c
+%h --include=./includes/minirt.h
+-Wall
+-Wextra
+-Werror
