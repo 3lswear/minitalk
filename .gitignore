@@ -1,0 +1,6 @@
+*.a
+*.o
+miniRT
+.vscode
+server
+client
