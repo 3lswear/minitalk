@@ -1,11 +1,16 @@
 #include "minitalk.h"
 
-void a_handler(int signum)
+void sig_handler(int signum)
 {
-	printf("signal handled ! signum = %d\n", signum);
+	if (signum == SIGUSR1)
+		printf("[+] received SIGUSR1\n");
+	else if (signum == SIGUSR2)
+		printf("[+] received SIGUSR2\n");
+	else
+		printf("received something else\n");
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	static char *art = "\n\
    ________  ______   _____  _____\n\
@@ -15,18 +20,19 @@ int main(int argc, char **argv)
 
 	struct sigaction new_action;
 
-	new_action.sa_handler = a_handler;
+	new_action.sa_handler = sig_handler;
 	sigemptyset(&new_action.sa_mask);
 	new_action.sa_flags = 0;
 
-	sigaction(SIGUSR1, )
-
-	(void)argc;
-	(void)argv;
+	sigaction(SIGUSR1, &new_action, NULL);
+	sigaction(SIGUSR2, &new_action, NULL);
+	/* signal(SIGUSR1, sig_handler); */
+	/* signal(SIGUSR2, sig_handler); */
 
 	printf("%s", art);
-	printf("My pid is: %d\n", getpid());
-	pause();
+	printf("[i] My pid is: %d\n", getpid());
+	while(1)
+		pause();
 
 	return (0);
 }
