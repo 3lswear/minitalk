@@ -2,12 +2,35 @@
 
 void sig_handler(int signum)
 {
+	static int i = 0;
+	static char c = 0;
+
 	if (signum == SIGUSR1)
-		printf("[+] received SIGUSR1\n");
+	{
+		i++;
+		c = c << 1;
+		/* ft_putstr_fd("0", 1); */
+	}
 	else if (signum == SIGUSR2)
-		printf("[+] received SIGUSR2\n");
+	{
+		i++;
+		c = c << 1;
+		c = c | 1;
+		/* ft_putstr_fd("1", 1); */
+	}
 	else
-		printf("received something else\n");
+		ft_putstr_fd("received something else\n", 1);
+
+	if (i % 8 == 0)
+	{
+		if (!c)
+			ft_putendl_fd("", 1);
+		/* ft_putstr_fd("	", 1); */
+		ft_putchar_fd(c, 1);
+		c = 0;
+		i = 0;
+		/* ft_putendl_fd("", 1); */
+	}
 }
 
 int main(void)
@@ -33,6 +56,7 @@ int main(void)
 	printf("[i] My pid is: %d\n", getpid());
 	while(1)
 		pause();
+
 
 	return (0);
 }
