@@ -1,5 +1,25 @@
 #include "minitalk.h"
 
+int g_ready = 1;
+
+void wait_for_ready()
+{
+	while (!g_ready)
+		pause();
+}
+
+void client_handler(int signum)
+{
+	if (signum == SIGUSR1)
+	{
+		/* ft_putendl_fd("SIGUSR1 recieved", 1); */
+		g_ready = 1;
+	}
+	else
+		ft_putendl_fd("recieved something else", 1);
+
+}
+
 void	send_byte(char byte, int pid)
 {
 	int i = 7;
@@ -7,23 +27,21 @@ void	send_byte(char byte, int pid)
 
 	while (i >= 0)
 	{
+		wait_for_ready();
+		usleep(100);
 		bit = (byte >> i) & 1;
 		if (bit)
 		{
 			kill(pid, SIGUSR2);
-			/* ft_putstr_fd("1", 1); */
 		}
 		else
 		{
 			kill(pid, SIGUSR1);
-			/* ft_putstr_fd("0", 1); */
 		}
+		g_ready = 0;
 		i--;
-		usleep(400);
+		/* usleep(400); */
 	}
-	/* ft_putstr_fd("	", 1); */
-	/* ft_putchar_fd(byte, 1); */
-	/* ft_putendl_fd("", 1); */
 }
 
 void	send_str(char *str, int pid)
@@ -31,10 +49,8 @@ void	send_str(char *str, int pid)
 	while (*str)
 	{
 		send_byte(*str++, pid);
-		/* usleep(1000); */
 	}
 	send_byte(0, pid);
-	/* usleep(1000); */
 }
 
 int		main(int argc ,char **argv)
@@ -51,6 +67,15 @@ int		main(int argc ,char **argv)
 		return(-1);
 
 	printf("pid is %d\n", pid);
+
+	struct sigaction client_action;
+
+	client_action.sa_handler = client_handler;
+	sigemptyset(&client_action.sa_mask);
+	sigaddset(&client_action.sa_mask, SIGUSR1);
+	client_action.sa_flags = SA_SIGINFO;
+
+	sigaction(SIGUSR1, &client_action, NULL);
 
 	send_str(str, pid);
 
