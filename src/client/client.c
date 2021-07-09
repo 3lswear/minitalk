@@ -11,29 +11,30 @@ void	send_byte(char byte, int pid)
 		if (bit)
 		{
 			kill(pid, SIGUSR2);
-			ft_putstr_fd("1", 1);
+			/* ft_putstr_fd("1", 1); */
 		}
 		else
 		{
 			kill(pid, SIGUSR1);
-			ft_putstr_fd("0", 1);
+			/* ft_putstr_fd("0", 1); */
 		}
 		i--;
-		usleep(10);
+		usleep(400);
 	}
-	ft_putstr_fd("	", 1);
-	ft_putchar_fd(byte, 1);
-	ft_putendl_fd("", 1);
+	/* ft_putstr_fd("	", 1); */
+	/* ft_putchar_fd(byte, 1); */
+	/* ft_putendl_fd("", 1); */
 }
 
-void	sender(char *str, int pid)
+void	send_str(char *str, int pid)
 {
 	while (*str)
 	{
 		send_byte(*str++, pid);
-		usleep(100);
+		/* usleep(1000); */
 	}
 	send_byte(0, pid);
+	/* usleep(1000); */
 }
 
 int		main(int argc ,char **argv)
@@ -51,8 +52,7 @@ int		main(int argc ,char **argv)
 
 	printf("pid is %d\n", pid);
 
-	sender(str, pid);
-	
+	send_str(str, pid);
 
 	return (0);
 }

@@ -2,7 +2,7 @@
 
 void sig_handler(int signum)
 {
-	static int i = 0;
+static int i = 0;
 	static char c = 0;
 
 	if (signum == SIGUSR1)
@@ -24,6 +24,7 @@ void sig_handler(int signum)
 	if (i % 8 == 0)
 	{
 		if (!c)
+			/* exit(0); */
 			ft_putendl_fd("", 1);
 		/* ft_putstr_fd("	", 1); */
 		ft_putchar_fd(c, 1);
@@ -45,18 +46,19 @@ int main(void)
 
 	new_action.sa_handler = sig_handler;
 	sigemptyset(&new_action.sa_mask);
+	/* sigemptyset(&new_action.sa_mask); */
+	/* sigaddset(&new_action.sa_mask, SIGUSR1); */
+	/* sigaddset(&new_action.sa_mask, SIGUSR2); */
 	new_action.sa_flags = 0;
 
 	sigaction(SIGUSR1, &new_action, NULL);
 	sigaction(SIGUSR2, &new_action, NULL);
-	/* signal(SIGUSR1, sig_handler); */
-	/* signal(SIGUSR2, sig_handler); */
 
 	printf("%s", art);
 	printf("[i] My pid is: %d\n", getpid());
+
 	while(1)
 		pause();
-
 
 	return (0);
 }
