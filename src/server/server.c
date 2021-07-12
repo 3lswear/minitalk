@@ -2,8 +2,10 @@
 
 void sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
-	static int i = 0;
+	static size_t i = 0;
 	static char c = 0;
+	static int len = 0;
+	static char *str;
 	(void)ucontext;
 
 	if (signum == SIGUSR1)
@@ -11,8 +13,6 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 		i++;
 		c = c << 1;
 		/* ft_putstr_fd("0", 1); */
-		usleep(100);
-		kill(info->si_pid, SIGUSR1);
 	}
 	else if (signum == SIGUSR2)
 	{
@@ -20,25 +20,43 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 		c = c << 1;
 		c = c | 1;
 		/* ft_putstr_fd("1", 1); */
-		usleep(100);
-		kill(info->si_pid, SIGUSR1);
 	}
 	else
 		ft_putstr_fd("received something else\n", 1);
 
+
+	//read a byte
 	if (i % 8 == 0)
 	{
-		if (!c)
+		if (i <= 32)
 		{
-			ft_putendl_fd("", 1);
-			exit(0);
+			/* printf("%02X\n", c); */
+			len = len << 8;
+			len = len | c;
+			if (i == 32)
+				str = ft_calloc(len + 1, sizeof(char));
 		}
-		/* ft_putstr_fd("	", 1); */
-		ft_putchar_fd(c, 1);
-		c = 0;
-		i = 0;
-		/* ft_putendl_fd("", 1); */
+		else
+		{
+			if (!c)
+			{
+				/* ft_putstr_fd(str, 1); */
+				ft_putendl_fd("", 1);
+				free(str);
+				kill(info->si_pid, SIGUSR2);
+				/* exit(0); */
+				i = 0;
+				c = 0;
+				len = 0;
+				return;
+			}
+			ft_putchar_fd(c, 1);
+			str[(i - 40) / 8] = c;
+			c = 0;
+		}
 	}
+	/* usleep(200); */
+	kill(info->si_pid, SIGUSR1);
 }
 
 int main(void)
@@ -54,8 +72,8 @@ int main(void)
 
 	new_action.sa_sigaction = sig_handler;
 	sigemptyset(&new_action.sa_mask);
-	/* sigaddset(&new_action.sa_mask, SIGUSR1); */
-	/* sigaddset(&new_action.sa_mask, SIGUSR2); */
+	sigaddset(&new_action.sa_mask, SIGUSR1);
+	sigaddset(&new_action.sa_mask, SIGUSR2);
 	new_action.sa_flags = SA_SIGINFO;
 
 	sigaction(SIGUSR1, &new_action, NULL);
@@ -65,6 +83,7 @@ int main(void)
 	/* printf("[i] My pid is: %d\n", getpid()); */
 
 	while(1)
+		/* sleep(1); */
 		pause();
 
 	return (0);

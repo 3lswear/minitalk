@@ -1,51 +1,54 @@
 #include "minitalk.h"
 
-int g_ready = 1;
-
-void wait_for_ready()
-{
-	while (!g_ready)
-		pause();
-}
-
 void client_handler(int signum)
 {
-	if (signum == SIGUSR1)
+	if (signum == SIGUSR2)
 	{
 		/* ft_putendl_fd("SIGUSR1 recieved", 1); */
-		g_ready = 1;
+		ft_putendl_fd("[i] Message was received.", 1);
 	}
 	else
-		ft_putendl_fd("recieved something else", 1);
-
+		usleep(1);
+		/* ft_putendl_fd("received something else", 1); */
 }
 
 void	send_byte(char byte, int pid)
 {
 	int i = 7;
-	int bit;
+	short err;
 
+	err = 0;
 	while (i >= 0)
 	{
-		wait_for_ready();
-		usleep(100);
-		bit = (byte >> i) & 1;
-		if (bit)
-		{
-			kill(pid, SIGUSR2);
-		}
+		if ((byte >> i) & 1)
+			err = kill(pid, SIGUSR2);
 		else
-		{
-			kill(pid, SIGUSR1);
-		}
-		g_ready = 0;
+			err = kill(pid, SIGUSR1);
+		usleep(40000);
 		i--;
-		/* usleep(400); */
+		if (err)
+		{
+			ft_putendl_fd("Server died :(", 2);
+			return;
+		}
 	}
 }
 
 void	send_str(char *str, int pid)
 {
+	unsigned int len;
+	int i;
+
+	len = ft_strlen(str);
+	i = 0;
+
+	while (i < 4)
+	{
+		send_byte((len & 0xFF000000) >> 24, pid);
+		len = len << 8;
+		i++;
+	}
+
 	while (*str)
 	{
 		send_byte(*str++, pid);
@@ -72,10 +75,11 @@ int		main(int argc ,char **argv)
 
 	client_action.sa_handler = client_handler;
 	sigemptyset(&client_action.sa_mask);
-	sigaddset(&client_action.sa_mask, SIGUSR1);
-	client_action.sa_flags = SA_SIGINFO;
+	/* sigaddset(&client_action.sa_mask, SIGUSR1); */
+	client_action.sa_flags = 0;
 
 	sigaction(SIGUSR1, &client_action, NULL);
+	sigaction(SIGUSR2, &client_action, NULL);
 
 	send_str(str, pid);
 
