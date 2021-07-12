@@ -2,24 +2,22 @@
 
 void sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
-	static size_t i = 0;
-	static char c = 0;
-	static int len = 0;
-	static char *str;
+	static size_t i = 0; // received bit number
+	static char c = 0; //assembled byte
+	static unsigned int len = 0; // string length
+	static char *str; // assembled string
 	(void)ucontext;
 
 	if (signum == SIGUSR1)
 	{
 		i++;
 		c = c << 1;
-		/* ft_putstr_fd("0", 1); */
 	}
 	else if (signum == SIGUSR2)
 	{
 		i++;
 		c = c << 1;
 		c = c | 1;
-		/* ft_putstr_fd("1", 1); */
 	}
 	else
 		ft_putstr_fd("received something else\n", 1);
@@ -30,9 +28,10 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 	{
 		if (i <= 32)
 		{
-			/* printf("%02X\n", c); */
+			/* printf("i = %2lu, c = %02X\n", i, c); */
 			len = len << 8;
-			len = len | c;
+			len = len | (c & 0xFF);
+			/* printf("len is %02X\n", len); */
 			if (i == 32)
 				str = ft_calloc(len + 1, sizeof(char));
 		}
@@ -44,18 +43,22 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 				ft_putendl_fd("", 1);
 				free(str);
 				kill(info->si_pid, SIGUSR2);
-				/* exit(0); */
+				exit(0);
 				i = 0;
 				c = 0;
 				len = 0;
 				return;
 			}
 			ft_putchar_fd(c, 1);
+			if (!str)
+			{
+				ft_putendl_fd("\n[x] STR IS FUCKING NULL", 2);
+				exit(-1);
+			}
 			str[(i - 40) / 8] = c;
-			c = 0;
 		}
+		c = 0;
 	}
-	/* usleep(200); */
 	kill(info->si_pid, SIGUSR1);
 }
 

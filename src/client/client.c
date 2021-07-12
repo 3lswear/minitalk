@@ -4,12 +4,10 @@ void client_handler(int signum)
 {
 	if (signum == SIGUSR2)
 	{
-		/* ft_putendl_fd("SIGUSR1 recieved", 1); */
 		ft_putendl_fd("[i] Message was received.", 1);
 	}
 	else
 		usleep(1);
-		/* ft_putendl_fd("received something else", 1); */
 }
 
 void	send_byte(char byte, int pid)
@@ -28,8 +26,8 @@ void	send_byte(char byte, int pid)
 		i--;
 		if (err)
 		{
-			ft_putendl_fd("Server died :(", 2);
-			return;
+			ft_putendl_fd("[x] Server died :(", 2);
+			exit(-1);
 		}
 	}
 }
@@ -37,22 +35,20 @@ void	send_byte(char byte, int pid)
 void	send_str(char *str, int pid)
 {
 	unsigned int len;
-	int i;
+	size_t i;
 
 	len = ft_strlen(str);
 	i = 0;
 
 	while (i < 4)
 	{
-		send_byte((len & 0xFF000000) >> 24, pid);
+		send_byte(((len & 0xFF000000) >> 24) & 0xFF, pid);
 		len = len << 8;
 		i++;
 	}
 
 	while (*str)
-	{
 		send_byte(*str++, pid);
-	}
 	send_byte(0, pid);
 }
 
