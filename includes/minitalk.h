@@ -8,4 +8,7 @@
 
 #include <stdio.h>
 
+
+void	send_byte(char byte, int pid);
+
 #endif
