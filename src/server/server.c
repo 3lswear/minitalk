@@ -1,5 +1,23 @@
 #include "minitalk.h"
 
+/* void	save_byte(char *c, char *str, size_t *i, unsigned int *len) */
+/* { */
+
+
+/* } */
+
+void end_transfer(char *str, size_t *i, unsigned int *len, pid_t pid)
+{
+	printf("len is %u\n", *len);
+	ft_putstr_fd(str, 1);
+	ft_putendl_fd("", 1);
+	free(str);
+	/* exit(0); */
+	*i = 0;
+	*len = 0;
+	kill(pid, SIGUSR2);
+}
+
 void sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
 	static size_t i = 0; // received bit number
@@ -8,54 +26,30 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 	static char *str; // assembled string
 	(void)ucontext;
 
-	if (signum == SIGUSR1)
-	{
-		i++;
-		c = c << 1;
-	}
-	else if (signum == SIGUSR2)
-	{
-		i++;
-		c = c << 1;
+	i++;
+	c = c << 1;
+	if (signum == SIGUSR2)
 		c = c | 1;
-	}
-	else
-		ft_putstr_fd("received something else\n", 1);
-
-
-	//read a byte
-	if (i % 8 == 0)
+	if (i % 8 == 0) //read a byte
 	{
-		if (i <= 32)
+		if (i <= 32) // receiving len
 		{
-			/* printf("i = %2lu, c = %02X\n", i, c); */
-			len = len << 8;
-			len = len | (c & 0xFF);
-			/* printf("len is %02X\n", len); */
+			len = (len << 8) | (c & 0xFF);
 			if (i == 32)
 				str = ft_calloc(len + 1, sizeof(char));
 		}
 		else
 		{
-			if (!c)
+			if (str)
+				str[(i - 40) / 8] = c;
+			else
 			{
-				/* ft_putstr_fd(str, 1); */
-				ft_putendl_fd("", 1);
-				free(str);
-				kill(info->si_pid, SIGUSR2);
-				exit(0);
-				i = 0;
-				c = 0;
-				len = 0;
-				return;
-			}
-			ft_putchar_fd(c, 1);
-			if (!str)
-			{
-				ft_putendl_fd("\n[x] STR IS FUCKING NULL", 2);
+				ft_putendl_fd("\n[x] malloc error", 2);
 				exit(-1);
 			}
-			str[(i - 40) / 8] = c;
+			/* ft_putchar_fd(c, 1); */
+			if (!c) //if transfer ended
+				end_transfer(str, &i, &len, info->si_pid);
 		}
 		c = 0;
 	}
