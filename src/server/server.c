@@ -1,5 +1,10 @@
 #include "minitalk.h"
 
+/* void	end_tranfer(char **str, size_t *i, unsigned int *len, pid_t pid) */
+/* { */
+
+/* } */
+
 void sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
 	static size_t bitn = 0; // received bit number
@@ -16,14 +21,16 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 	{
 		if (bitn <= 32)
 		{
-			/* printf("bitn = %2lu, c = %02X\n", bitn, c); */
 			len = (len << 8) | (c & 0xFF);
-			/* printf("len is %02X\n", len); */
 			if (bitn == 32)
 				str = ft_calloc(len + 1, sizeof(char));
 		}
 		else
 		{
+			if (str)
+				str[(bitn - 40) / 8] = c;
+			else
+				print_err(-1, "malloc error");
 			if (!c)
 			{
 				ft_putstr_fd(str, 1);
@@ -37,10 +44,6 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 				return;
 			}
 			/* ft_putchar_fd(c, 1); */
-			if (str)
-				str[(bitn - 40) / 8] = c;
-			else
-				print_err(-1, "malloc error");
 		}
 		c = 0;
 	}
@@ -60,18 +63,18 @@ int main(void)
 
 	new_action.sa_sigaction = sig_handler;
 	sigemptyset(&new_action.sa_mask);
-	sigaddset(&new_action.sa_mask, SIGUSR1);
-	sigaddset(&new_action.sa_mask, SIGUSR2);
+	/* sigaddset(&new_action.sa_mask, SIGUSR1); */
+	/* sigaddset(&new_action.sa_mask, SIGUSR2); */
 	new_action.sa_flags = SA_SIGINFO;
 
 	sigaction(SIGUSR1, &new_action, NULL);
 	sigaction(SIGUSR2, &new_action, NULL);
 
-	/* printf("%s", art); */
-	/* printf("[i] My pid is: %d\n", getpid()); */
+	ft_putstr_fd("[i] Server pid: ", 1);
+	ft_putnbr_fd(getpid(), 1);
+	ft_putendl_fd("", 1);
 
 	while(1)
-		/* sleep(1); */
 		pause();
 
 	return (0);
