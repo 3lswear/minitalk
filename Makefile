@@ -10,8 +10,8 @@ HEADER = $(INCLUDES)/minitalk.h
 
 HEADERS = minitalk.h
 
-SRV_SRC = $(wildcard ./src/server/*.c)
-CLI_SRC = $(wildcard ./src/client/*.c)
+SRV_SRC = ./src/server/server.c
+CLI_SRC = ./src/client/client.c
 UTILS_SRC = ./src/utils.c
 
 SRC = $(SRV_SRC) $(CLI_SRC) $(UTILS_SRC)
@@ -30,9 +30,6 @@ all: $(NAME)
 
 $(NAME): client server
 
-# $(OBJ): %.o: %.c
-# 	$(CC) $(CFLAGS) -c $< -I $(INCLUDES) -o $@
-
 $(UTILS_OBJ): %.o: %.c $(HEADER)
 	$(CC) $(CFLAGS) -c $< -I $(INCLUDES) -o $@
 
@@ -44,9 +41,6 @@ $(SRV_OBJ): %.o: %.c $(HEADER)
 
 $(LIBFT):
 	$(MAKE) -C ./libft
-
-# $(NAME): $(LIBFT) $(OBJ) 
-	# $(CC) $(OBJ) $(LIBFT_FLAGS) -lm -o $(NAME)
 
 client: $(CLI_OBJ) $(LIBFT) $(HEADER) $(UTILS_OBJ)
 	$(CC) $(CLI_OBJ) $(UTILS_OBJ) $(LIBFT_FLAGS) -o $@
