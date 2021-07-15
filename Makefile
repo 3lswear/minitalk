@@ -4,9 +4,6 @@ CC = clang
 
 CFLAGS = -Wall -Wextra -Werror -g
 
-# CC = /mnt/nfs/obfuscator-llvm50/build_release/bin/clang
-# CFLAGS = -Wall -Wextra -Werror -mllvm -fla -mllvm -split -mllvm -split_num=3 -mllvm -bcf
-
 INCLUDES = ./includes
 
 HEADER = $(INCLUDES)/minitalk.h
