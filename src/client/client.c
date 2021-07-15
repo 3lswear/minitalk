@@ -36,7 +36,7 @@ void	send_byte(char byte, int pid)
 		else
 			err = kill(pid, SIGUSR1);
 		if (err)
-			print_err(-1, "Server is dead");
+			print_err(-1, "Server is dead.");
 		usleep(20000);
 	}
 }
@@ -48,7 +48,6 @@ void	send_str(char *str, int pid)
 
 	len = ft_strlen(str);
 	i = 0;
-	printf("len is %u\n", len);
 	while (i < 4)
 	{
 		send_byte(((len & 0xFF000000) >> 24) & 0xFF, pid);
@@ -73,7 +72,7 @@ int	main(int argc, char **argv)
 	}
 	else
 	{
-		ft_putendl_fd("Usage: client PID STRING", 2);
+		ft_putendl_fd("[i] Usage: client PID STRING", 2);
 		return (-1);
 	}
 	client_action.sa_sigaction = client_handler;
@@ -83,5 +82,6 @@ int	main(int argc, char **argv)
 	sigaction(SIGUSR2, &client_action, NULL);
 	sigaction(SIGINT, &client_action, NULL);
 	send_str(str, pid);
+	pause();
 	return (0);
 }
