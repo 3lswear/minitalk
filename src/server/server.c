@@ -1,13 +1,18 @@
 #include "minitalk.h"
 
-void	recv_len(unsigned int *len, char c, int bitn, char **str)
+void	recv_len(char c, int bitn, char **str)
 {
-			*len = (*len << 8) | (c & 0xFF);
-			if (bitn == 32)
-				*str = ft_calloc(*len + 1, sizeof(char));
+	static unsigned int len = 0; // string length
+
+	len = (len << 8) | (c & 0xFF);
+	if (bitn == 32)
+	{
+		*str = ft_calloc(len + 1, sizeof(char));
+		len = 0;
+	}
 }
 
-void	end_tranfer(char **str, size_t *bitn, unsigned int *len, pid_t pid)
+void	end_tranfer(char **str, size_t *bitn, pid_t pid)
 {
 	ft_putstr_fd(*str, 1);
 	ft_putendl_fd("", 1);
@@ -15,14 +20,12 @@ void	end_tranfer(char **str, size_t *bitn, unsigned int *len, pid_t pid)
 	kill(pid, SIGUSR2);
 	/* exit(0); */
 	*bitn = 0;
-	*len = 0;
 }
 
 void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
 	static size_t bitn = 0; // received bit number
 	static char c = 0; //assembled byte
-	static unsigned int len = 0; // string length
 	static char *str; // assembled string
 
 	(void)ucontext;
@@ -33,7 +36,7 @@ void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 	if (bitn % 8 == 0) //read a byte
 	{
 		if (bitn <= 32)
-			recv_len(&len, c, bitn, &str);
+			recv_len(c, bitn, &str);
 		else
 		{
 			if (str)
@@ -41,7 +44,7 @@ void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 			else
 				print_err(-1, "malloc error");
 			if (!c)
-				end_tranfer(&str, &bitn, &len, info->si_pid);
+				end_tranfer(&str, &bitn, info->si_pid);
 		}
 		c = 0;
 	}
