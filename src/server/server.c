@@ -2,60 +2,45 @@
 
 void sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
-	static size_t i = 0; // received bit number
+	static size_t bitn = 0; // received bit number
 	static char c = 0; //assembled byte
 	static unsigned int len = 0; // string length
 	static char *str; // assembled string
+
 	(void)ucontext;
-
-	if (signum == SIGUSR1)
-	{
-		i++;
-		c = c << 1;
-	}
-	else if (signum == SIGUSR2)
-	{
-		i++;
-		c = c << 1;
+	bitn++;
+	c = c << 1;
+	if (signum == SIGUSR2)
 		c = c | 1;
-	}
-	else
-		ft_putstr_fd("received something else\n", 1);
-
-
-	//read a byte
-	if (i % 8 == 0)
+	if (bitn % 8 == 0) //read a byte
 	{
-		if (i <= 32)
+		if (bitn <= 32)
 		{
-			/* printf("i = %2lu, c = %02X\n", i, c); */
-			len = len << 8;
-			len = len | (c & 0xFF);
+			/* printf("bitn = %2lu, c = %02X\n", bitn, c); */
+			len = (len << 8) | (c & 0xFF);
 			/* printf("len is %02X\n", len); */
-			if (i == 32)
+			if (bitn == 32)
 				str = ft_calloc(len + 1, sizeof(char));
 		}
 		else
 		{
 			if (!c)
 			{
-				/* ft_putstr_fd(str, 1); */
+				ft_putstr_fd(str, 1);
 				ft_putendl_fd("", 1);
 				free(str);
 				kill(info->si_pid, SIGUSR2);
-				exit(0);
-				i = 0;
+				/* exit(0); */
+				bitn = 0;
 				c = 0;
 				len = 0;
 				return;
 			}
-			ft_putchar_fd(c, 1);
-			if (!str)
-			{
-				ft_putendl_fd("\n[x] STR IS FUCKING NULL", 2);
-				exit(-1);
-			}
-			str[(i - 40) / 8] = c;
+			/* ft_putchar_fd(c, 1); */
+			if (str)
+				str[(bitn - 40) / 8] = c;
+			else
+				print_err(-1, "malloc error");
 		}
 		c = 0;
 	}
