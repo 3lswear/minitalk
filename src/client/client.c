@@ -1,11 +1,24 @@
 #include "minitalk.h"
 
-void	client_handler(int signum)
+void	client_handler(int signum, siginfo_t *info, void *ucontext)
 {
+	static pid_t	server;
+
+	(void)ucontext;
 	if (signum == SIGUSR2)
 	{
 		ft_putendl_fd("[i] Message was received.", 1);
 		exit(0);
+	}
+	else if (signum == SIGUSR1)
+		server = info->si_pid;
+	else
+	{
+		if (server)
+		{
+			send_byte(0, server);
+			send_byte(0, server);
+		}
 	}
 }
 
@@ -45,7 +58,6 @@ void	send_str(char *str, int pid)
 	while (*str)
 		send_byte(*str++, pid);
 	send_byte(0, pid);
-	/* usleep(20000); */
 }
 
 int	main(int argc, char **argv)
@@ -64,11 +76,12 @@ int	main(int argc, char **argv)
 		ft_putendl_fd("Usage: client PID STRING", 2);
 		return (-1);
 	}
-	client_action.sa_handler = client_handler;
+	client_action.sa_sigaction = client_handler;
 	sigemptyset(&client_action.sa_mask);
-	client_action.sa_flags = 0;
+	client_action.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &client_action, NULL);
 	sigaction(SIGUSR2, &client_action, NULL);
+	sigaction(SIGINT, &client_action, NULL);
 	send_str(str, pid);
 	return (0);
 }
