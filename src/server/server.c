@@ -2,7 +2,7 @@
 
 void	recv_len(char c, int bitn, char **str)
 {
-	static unsigned int len = 0; // string length
+	static unsigned int	len = 0;
 
 	len = (len << 8) | (c & 0xFF);
 	if (bitn == 32)
@@ -14,26 +14,30 @@ void	recv_len(char c, int bitn, char **str)
 
 void	end_tranfer(char **str, size_t *bitn, pid_t pid)
 {
+	int	err;
+
+	err = 0;
 	ft_putstr_fd(*str, 1);
 	ft_putendl_fd("", 1);
 	free(*str);
-	kill(pid, SIGUSR2);
-	/* exit(0); */
+	err = kill(pid, SIGUSR2);
+	if (err)
+		print_err(-1, "Client is dead.");
 	*bitn = 0;
 }
 
 void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
-	static size_t bitn = 0; // received bit number
-	static char c = 0; //assembled byte
-	static char *str; // assembled string
+	static size_t	bitn = 0;
+	static char		c = 0;
+	static char		*str;
 
 	(void)ucontext;
 	bitn++;
 	c = c << 1;
 	if (signum == SIGUSR2)
 		c = c | 1;
-	if (bitn % 8 == 0) //read a byte
+	if (bitn % 8 == 0)
 	{
 		if (bitn <= 32)
 			recv_len(c, bitn, &str);
@@ -42,7 +46,7 @@ void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 			if (str)
 				str[(bitn - 40) / 8] = c;
 			else
-				print_err(-1, "malloc error");
+				print_err(-1, "Malloc error");
 			if (!c)
 				end_tranfer(&str, &bitn, info->si_pid);
 		}
@@ -51,14 +55,14 @@ void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 	kill(info->si_pid, SIGUSR1);
 }
 
-int main(void)
+int	main(void)
 {
-	static char *art = "\n\
+	static char			*art = "\n\
    ________  ______   _____  _____\n\
   / ___/ _ \\/ ___/ | / / _ \\/ ___/\n\
  (__  )  __/ /   | |/ /  __/ /    \n\
 /____/\\___/_/    |___/\\___/_/     \n\n";
-	struct sigaction new_action;
+	struct sigaction	new_action;
 
 	(void)art;
 	new_action.sa_sigaction = sig_handler;
@@ -66,9 +70,9 @@ int main(void)
 	new_action.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &new_action, NULL);
 	sigaction(SIGUSR2, &new_action, NULL);
-	ft_putstr_fd("[i] Server pid: ", 1);
-	ft_putnbr_fd(getpid(), 1);
-	ft_putendl_fd("", 1);
+	ft_putstr_fd("[i] Server pid: ", 2);
+	ft_putnbr_fd(getpid(), 2);
+	ft_putendl_fd("", 2);
 	while (1)
 		pause();
 	return (0);
