@@ -1,9 +1,15 @@
 #include "minitalk.h"
 
-/* void	end_tranfer(char **str, size_t *i, unsigned int *len, pid_t pid) */
-/* { */
-
-/* } */
+void	end_tranfer(char **str, size_t *bitn, unsigned int *len, pid_t pid)
+{
+	ft_putstr_fd(*str, 1);
+	ft_putendl_fd("", 1);
+	free(*str);
+	kill(pid, SIGUSR2);
+	/* exit(0); */
+	*bitn = 0;
+	*len = 0;
+}
 
 void sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
@@ -32,17 +38,7 @@ void sig_handler(int signum, siginfo_t *info, void *ucontext)
 			else
 				print_err(-1, "malloc error");
 			if (!c)
-			{
-				ft_putstr_fd(str, 1);
-				ft_putendl_fd("", 1);
-				free(str);
-				kill(info->si_pid, SIGUSR2);
-				/* exit(0); */
-				bitn = 0;
-				c = 0;
-				len = 0;
-				return;
-			}
+				end_tranfer(&str, &bitn, &len, info->si_pid);
 			/* ft_putchar_fd(c, 1); */
 		}
 		c = 0;
