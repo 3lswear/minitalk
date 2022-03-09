@@ -8,13 +8,13 @@ Learning Unix IPC by misusing signals!
 
 clone the repo:
 
-```
+```bash
 git clone --recursive https://github.com/3lswear/minitalk
 ```
 
 build:
 
-```
+```bash
 cd minitalk && make
 ```
 launch server:
@@ -23,7 +23,16 @@ launch server:
 ./server
 ```
 
-launch client with a pid ????
+launch client with server's pid and string to send as arguments:
+
+```bash
+./client 1337 a_string_to_send
+```
+or, to make things easier:
+
+```bash
+./client $(pidof server) "$(< text.txt)"
+```
 
 ### Description
 ---
