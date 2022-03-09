@@ -41,15 +41,15 @@ Upon completion the server simply prints out received text.
 
 The communication goes on something like this:
 ```
-┌───────────┐    one bit of data  ┌───────────┐
-│           ├─────────────────────►           │
-│           │                     │           │
-│           │  SIGUSR1/SIGUSR2    │           │
-│  client   │                     │  server   │
-│           │                     │           │
-│           ◄─────────────────────┤           │
-│           │      confirmation   │           │
-│           │                     │           │
-└───────────┘                     └───────────┘
+┌───────────┐                    ┌───────────┐
+│           │   one bit of data  │           │
+│           ├────────────────────►           │
+│           │                    │           │
+│  client   │  SIGUSR1/SIGUSR2   │  server   │
+│           │                    │           │
+│           │                    │           │
+│           ◄────────────────────┤           │
+│           │    confirmation    │           │
+└───────────┘                    └───────────┘
 ```
 The hard part was to make data transfer fast and resistant to latency variations.
