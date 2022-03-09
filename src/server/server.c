@@ -1,23 +1,18 @@
 #include "minitalk.h"
 
-/* void	put_char() */
-
-void	recv_len(int bitn, char c, char **str)
+void	recv_len(char c, int bitn, char **str)
 {
-	static unsigned int	len;
+	static unsigned int	len = 0;
 
 	len = (len << 8) | (c & 0xFF);
 	if (bitn == 32)
 	{
-		printf("len is %u\n", len);
-		ft_putendl_fd("allocing", 1);
 		*str = ft_calloc(len + 1, sizeof(char));
 		len = 0;
 	}
-
 }
 
-void	end_transfer(char **str, size_t *bitn, pid_t pid)
+void	end_tranfer(char **str, size_t *bitn, pid_t pid)
 {
 	int	err;
 
@@ -25,39 +20,35 @@ void	end_transfer(char **str, size_t *bitn, pid_t pid)
 	ft_putstr_fd(*str, 1);
 	ft_putendl_fd("", 1);
 	free(*str);
-	/* exit(0); */
-	*bitn = 0;
 	err = kill(pid, SIGUSR2);
 	if (err)
-		ft_putendl_fd("[w] Client didn\'t receive acknowledgment :(", 2);
+		print_err(-1, "Client is dead.");
+	*bitn = 0;
 }
 
 void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 {
-	static size_t	bitn = 0; // received bit number
-	static char		c = 0; //assembled byte
-	static char 	*str; // assembled string
-	/* int 			err; */
+	static size_t	bitn = 0;
+	static char		c = 0;
+	static char		*str;
 
 	(void)ucontext;
-	/* err = 0; */
 	bitn++;
 	c = c << 1;
 	if (signum == SIGUSR2)
 		c = c | 1;
-	if (bitn % 8 == 0) //read a byte
+	if (bitn % 8 == 0)
 	{
-		if (bitn <= 32) // receiving len
-			recv_len(bitn, c, &str);
+		if (bitn <= 32)
+			recv_len(c, bitn, &str);
 		else
 		{
 			if (str)
 				str[(bitn - 40) / 8] = c;
 			else
-				print_err(-1, "malloc error");
-			/* ft_putchar_fd(c, 1); */
-			if (!c) //if transfer ended
-				end_transfer(&str, &bitn, info->si_pid);
+				print_err(-1, "Malloc error");
+			if (!c)
+				end_tranfer(&str, &bitn, info->si_pid);
 		}
 		c = 0;
 	}
@@ -69,29 +60,25 @@ void	sig_handler(int signum, siginfo_t *info, void *ucontext)
 	/* } */
 }
 
-int main(void)
+int	main(void)
 {
-	static char *art = "\n\
+	static char			*art = "\n\
    ________  ______   _____  _____\n\
   / ___/ _ \\/ ___/ | / / _ \\/ ___/\n\
  (__  )  __/ /   | |/ /  __/ /    \n\
 /____/\\___/_/    |___/\\___/_/     \n\n";
+	struct sigaction	new_action;
 
 	(void)art;
-	struct sigaction new_action;
-
 	new_action.sa_sigaction = sig_handler;
 	sigemptyset(&new_action.sa_mask);
-	/* sigaddset(&new_action.sa_mask, SIGUSR1); */
-	/* sigaddset(&new_action.sa_mask, SIGUSR2); */
 	new_action.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &new_action, NULL);
 	sigaction(SIGUSR2, &new_action, NULL);
-	ft_putstr_fd("[i] My pid is: ", 1);
-	ft_putnbr_fd(getpid(), 1);
-	ft_putendl_fd("", 1);
-	while(1)
+	ft_putstr_fd("[i] Server pid: ", 2);
+	ft_putnbr_fd(getpid(), 2);
+	ft_putendl_fd("", 2);
+	while (1)
 		pause();
-
 	return (0);
 }

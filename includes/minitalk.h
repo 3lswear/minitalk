@@ -6,8 +6,6 @@
 # include <signal.h>
 # include <stdlib.h>
 
-# include <stdio.h>
-
 void	send_byte(char byte, int pid);
 void	print_err(int code, char *msg);
 
